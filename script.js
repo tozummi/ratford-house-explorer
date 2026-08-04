@@ -191,31 +191,31 @@ function createMarkers() {
 
 const MATERIAL_COLOURS = {
   // Architecture
-  walls: '#CFC6B7',          // Warm limestone walls
-  roomFloor: '#EEE9DF',      // Pale limestone floor
-  hallway: '#E6E0D5',        // Slightly darker than room floors
-  balconyFloor: '#D9D1C5',   // Exterior stone paving
-  balconyWall: '#CFC6B7',
-  stairs: '#D7CEC1',         // Cream stone staircase
+  walls: '#B5AEA1',          // Darker warm stone
+  roomFloor: '#DDE4D7',      // Pale sage limestone
+  hallway: '#D2DCCF',        // Slightly darker sage
+  balconyFloor: '#D0C8BB',   // Exterior stone
+  balconyWall: '#B5AEA1',
+  stairs: '#CEC5B8',         // Light stone staircase
 
   // Furniture
-  gameTable: '#8A6440',      // Oak
-  sofa: '#757A76',           // Slate grey
-  table: '#7C5A3A',          // Walnut
-  chair: '#7C5A3A',          // Walnut
-  counter: '#F3F2EF',        // White quartz
-  cooker: '#4E5358',         // Anthracite
-  fridge: '#555A60',         // Anthracite
-  sink: '#FAFAF8',           // White ceramic
-  toilet: '#FAFAF8',         // White ceramic
-  bed: '#A68F77',            // Taupe upholstery
-  shower: '#FAFAF8',         // White
-  treadmill: '#2E3134',      // Black
-  washingMachine: '#F6F6F4', // White appliance
-  boiler: '#F4F4F2',         // White appliance
-  bath: '#FAFAF8',           // White
-  desk: '#7C5A3A',           // Walnut
-  deskChair: '#7C5A3A',      // Walnut
+  gameTable: '#44484C',      // Anthracite
+  sofa: '#757A76',
+  table: '#7C5A3A',
+  chair: '#7C5A3A',
+  counter: '#F3F2EF',
+  cooker: '#4E5358',
+  fridge: '#555A60',
+  sink: '#FAFAF8',
+  toilet: '#FAFAF8',
+  bed: '#A68F77',
+  shower: '#FAFAF8',
+  treadmill: '#2E3134',
+  washingMachine: '#F6F6F4',
+  boiler: '#F4F4F2',
+  bath: '#FAFAF8',
+  desk: '#7C5A3A',
+  deskChair: '#7C5A3A',
 };
 
 /*
