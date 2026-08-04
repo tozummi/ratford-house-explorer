@@ -195,6 +195,7 @@ const MATERIAL_COLOURS = {
 
   walls: '#B5AEA1',          // Warm stone walls
   roomFloor: '#DDE4D7',      // Pale sage limestone
+  bathroomFloor: '#8F9790',   // Dark muted sage-grey
   hallway: '#D2DCCF',        // Slightly darker sage
   balconyFloor: '#D0C8BB',   // Exterior stone paving
   balconyWall: '#B5AEA1',
@@ -422,6 +423,8 @@ const SHARED_MATERIALS = {
 
   roomFloor: makeSharedMaterial(MATERIAL_COLOURS.roomFloor, 0.70, 0.0),
 
+  bathroomFloor: makeSharedMaterial(MATERIAL_COLOURS.bathroomFloor,0.58,0.0),
+
   hallway: makeSharedMaterial(MATERIAL_COLOURS.hallway, 0.68, 0.0),
 
   balconyFloor: makeSharedMaterial(MATERIAL_COLOURS.balconyFloor, 0.72, 0.0),
@@ -479,6 +482,7 @@ const SHARED_MATERIALS = {
 
 
 function getSharedMaterial(object) {
+  const familyNames = getObjectFamilyNames(object);
   const furnitureType = getFurnitureType(object);
 
   const furnitureMaterials = {
@@ -501,7 +505,45 @@ function getSharedMaterial(object) {
     furniture_deskchair: SHARED_MATERIALS.deskChair,
   };
 
-  if (furnitureType) return furnitureMaterials[furnitureType];
+  /*
+   * Furniture must be checked first.
+   * This prevents a sink or toilet inside ground_washroom
+   * from accidentally receiving the bathroom-floor material.
+   */
+  if (furnitureType && furnitureMaterials[furnitureType]) {
+    return furnitureMaterials[furnitureType];
+  }
+
+  const bathroomRoomNames = [
+    'ground_washroom',
+    'ground_bathroom_9',
+    'ground_bathroom_10',
+    'first_bathroom_8',
+    'first_bathroom_7',
+    'first_bathroom_6',
+    'first_bathroom_5',
+    'first_bathroom_4',
+    'first_bathroom_3',
+    'second_bathroom',
+  ];
+
+  const isInsideBathroom = bathroomRoomNames.some(roomName =>
+    familyNames.some(name =>
+      name === roomName ||
+      name.startsWith(`${roomName}_`)
+    )
+  );
+
+  /*
+   * Only an object identified as room_floor and located inside
+   * one of the bathroom components gets the dark bathroom floor.
+   */
+  if (
+    familyMatches(object, 'room_floor') &&
+    isInsideBathroom
+  ) {
+    return SHARED_MATERIALS.bathroomFloor;
+  }
 
   if (familyMatches(object, 'room_hallway')) {
     return SHARED_MATERIALS.hallway;
