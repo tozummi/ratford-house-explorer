@@ -846,9 +846,27 @@ loader.load(
     modelBounds = new THREE.Box3().setFromObject(model);
 
     roomNodes = findNamedRoomNodes(model);
-    console.group('Ratford model objects');
-    model.traverse(node => { if (node.name) console.log(node.type, node.name); });
-    console.groupEnd();
+    console.group('Ratford model hierarchy');
+
+model.traverse(node => {
+  if (!node.name) return;
+
+  const parents = [];
+  let current = node.parent;
+
+  while (current) {
+    if (current.name) parents.unshift(current.name);
+    current = current.parent;
+  }
+
+  console.log({
+    type: node.type,
+    name: node.name,
+    path: [...parents, node.name].join(' > ')
+  });
+});
+
+console.groupEnd();
 
     const foundFloors = new Set();
     model.traverse(node => { const floor = floorForName(node.name); if (floor) foundFloors.add(floor); });
