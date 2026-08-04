@@ -188,120 +188,6 @@ function createMarkers() {
   });
 }
 
-const MATERIAL_COLOURS = {
-  walls: '#f5f1e8',
-  roomFloor: '#eee7da',
-  hallway: '#e8e0d3',
-  balconyFloor: '#d9d4ca',
-  balconyWall: '#f1ede5',
-  stairs: '#ddd3c4',
-
-  gameTable: '#8f775f',
-  sofa: '#b8aa96',
-  table: '#c9ad8b',
-  chair: '#c9ad8b',
-  counter: '#d8d0c3',
-  cooker: '#a8aaa6',
-  fridge: '#c7c9c6',
-  sink: '#d8d9d5',
-  toilet: '#eeeae2',
-  bed: '#d8c2a6',
-  shower: '#d7dcda',
-  treadmill: '#8f918d',
-  washingMachine: '#d7d8d5',
-  boiler: '#b9bbb7',
-  bath: '#eeeae2',
-  desk: '#c9ad8b',
-  deskChair: '#9f927f',
-};
-
-function ancestorNameIncludes(object, term) {
-  let current = object;
-
-  while (current) {
-    if (normalise(current.name).includes(term)) {
-      return true;
-    }
-
-    current = current.parent;
-  }
-
-  return false;
-}
-
-function colourForObject(object) {
-  const name = normalise(object.name);
-
-  // Collective components
-  if (ancestorNameIncludes(object, 'stairs')) {
-    return MATERIAL_COLOURS.stairs;
-  }
-
-  if (ancestorNameIncludes(object, 'structure')) {
-    return MATERIAL_COLOURS.walls;
-  }
-
-  // Floors and balcony
-  if (name === 'room_hallway') return MATERIAL_COLOURS.hallway;
-  if (name === 'room_floor') return MATERIAL_COLOURS.roomFloor;
-  if (name === 'balcony_floor') return MATERIAL_COLOURS.balconyFloor;
-  if (name === 'balcony_wall') return MATERIAL_COLOURS.balconyWall;
-
-  // Furniture
-  if (name === 'furniture_gametable') return MATERIAL_COLOURS.gameTable;
-  if (name === 'furniture_sofa') return MATERIAL_COLOURS.sofa;
-  if (name === 'furniture_table') return MATERIAL_COLOURS.table;
-  if (name === 'furniture_chair') return MATERIAL_COLOURS.chair;
-  if (name === 'furniture_counter') return MATERIAL_COLOURS.counter;
-  if (name === 'furniture_cooker') return MATERIAL_COLOURS.cooker;
-  if (name === 'furniture_fridge') return MATERIAL_COLOURS.fridge;
-  if (name === 'furniture_sink') return MATERIAL_COLOURS.sink;
-  if (name === 'furniture_toilet') return MATERIAL_COLOURS.toilet;
-  if (name === 'furniture_bed') return MATERIAL_COLOURS.bed;
-  if (name === 'furniture_shower') return MATERIAL_COLOURS.shower;
-  if (name === 'furniture_treadmill') return MATERIAL_COLOURS.treadmill;
-  if (name === 'furniture_washingmachine') return MATERIAL_COLOURS.washingMachine;
-  if (name === 'furniture_boiler') return MATERIAL_COLOURS.boiler;
-  if (name === 'furniture_bath') return MATERIAL_COLOURS.bath;
-  if (name === 'furniture_desk') return MATERIAL_COLOURS.desk;
-  if (name === 'furniture_deskchair') return MATERIAL_COLOURS.deskChair;
-
-  // Safe fallback for anything unrecognised
-  return MATERIAL_COLOURS.walls;
-}
-
-function materialSettingsForObject(object) {
-  const name = normalise(object.name);
-
-  const settings = {
-    roughness: 0.82,
-    metalness: 0,
-  };
-
-  const slightlyMetallic = [
-    'furniture_cooker',
-    'furniture_fridge',
-    'furniture_sink',
-    'furniture_shower',
-    'furniture_treadmill',
-    'furniture_washingmachine',
-    'furniture_boiler',
-  ];
-
-  if (slightlyMetallic.includes(name)) {
-    settings.roughness = 0.48;
-    settings.metalness = 0.08;
-  }
-
-  if (
-    name === 'furniture_toilet' ||
-    name === 'furniture_bath'
-  ) {
-    settings.roughness = 0.34;
-  }
-
-  return settings;
-}
 
 const MATERIAL_COLOURS = {
   // Architecture
@@ -861,7 +747,7 @@ loader.load(
   object => {
     model = object;
     model.name ||= 'ratford_house';
-    //setMaterialsAndShadows(model);
+    setMaterialsAndShadows(model);
     floorRoot.add(model);
 
     modelBounds = new THREE.Box3().setFromObject(model);
