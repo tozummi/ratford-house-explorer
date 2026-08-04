@@ -507,40 +507,102 @@ function getMaterialSettings(object) {
   return settings;
 }
 
+function makeSharedMaterial(colour, roughness = 0.82, metalness = 0) {
+  return new THREE.MeshStandardMaterial({
+    color: new THREE.Color(colour),
+    roughness,
+    metalness,
+    transparent: false,
+    opacity: 1,
+    side: THREE.DoubleSide,
+  });
+}
+
+const SHARED_MATERIALS = {
+  walls: makeSharedMaterial(MATERIAL_COLOURS.walls),
+  roomFloor: makeSharedMaterial(MATERIAL_COLOURS.roomFloor),
+  hallway: makeSharedMaterial(MATERIAL_COLOURS.hallway),
+  balconyFloor: makeSharedMaterial(MATERIAL_COLOURS.balconyFloor),
+  balconyWall: makeSharedMaterial(MATERIAL_COLOURS.balconyWall),
+  stairs: makeSharedMaterial(MATERIAL_COLOURS.stairs),
+
+  gameTable: makeSharedMaterial(MATERIAL_COLOURS.gameTable),
+  sofa: makeSharedMaterial(MATERIAL_COLOURS.sofa),
+  table: makeSharedMaterial(MATERIAL_COLOURS.table),
+  chair: makeSharedMaterial(MATERIAL_COLOURS.chair),
+  counter: makeSharedMaterial(MATERIAL_COLOURS.counter),
+  cooker: makeSharedMaterial(MATERIAL_COLOURS.cooker, 0.48, 0.08),
+  fridge: makeSharedMaterial(MATERIAL_COLOURS.fridge, 0.48, 0.08),
+  sink: makeSharedMaterial(MATERIAL_COLOURS.sink, 0.48, 0.08),
+  toilet: makeSharedMaterial(MATERIAL_COLOURS.toilet, 0.34, 0),
+  bed: makeSharedMaterial(MATERIAL_COLOURS.bed),
+  shower: makeSharedMaterial(MATERIAL_COLOURS.shower, 0.48, 0.08),
+  treadmill: makeSharedMaterial(MATERIAL_COLOURS.treadmill, 0.48, 0.08),
+  washingMachine: makeSharedMaterial(MATERIAL_COLOURS.washingMachine, 0.48, 0.08),
+  boiler: makeSharedMaterial(MATERIAL_COLOURS.boiler, 0.48, 0.08),
+  bath: makeSharedMaterial(MATERIAL_COLOURS.bath, 0.34, 0),
+  desk: makeSharedMaterial(MATERIAL_COLOURS.desk),
+  deskChair: makeSharedMaterial(MATERIAL_COLOURS.deskChair),
+};
+
+function getSharedMaterial(object) {
+  const furnitureType = getFurnitureType(object);
+
+  const furnitureMaterials = {
+    furniture_gametable: SHARED_MATERIALS.gameTable,
+    furniture_sofa: SHARED_MATERIALS.sofa,
+    furniture_table: SHARED_MATERIALS.table,
+    furniture_chair: SHARED_MATERIALS.chair,
+    furniture_counter: SHARED_MATERIALS.counter,
+    furniture_cooker: SHARED_MATERIALS.cooker,
+    furniture_fridge: SHARED_MATERIALS.fridge,
+    furniture_sink: SHARED_MATERIALS.sink,
+    furniture_toilet: SHARED_MATERIALS.toilet,
+    furniture_bed: SHARED_MATERIALS.bed,
+    furniture_shower: SHARED_MATERIALS.shower,
+    furniture_treadmill: SHARED_MATERIALS.treadmill,
+    furniture_washingmachine: SHARED_MATERIALS.washingMachine,
+    furniture_boiler: SHARED_MATERIALS.boiler,
+    furniture_bath: SHARED_MATERIALS.bath,
+    furniture_desk: SHARED_MATERIALS.desk,
+    furniture_deskchair: SHARED_MATERIALS.deskChair,
+  };
+
+  if (furnitureType) return furnitureMaterials[furnitureType];
+
+  if (familyMatches(object, 'room_hallway')) {
+    return SHARED_MATERIALS.hallway;
+  }
+
+  if (familyMatches(object, 'room_floor')) {
+    return SHARED_MATERIALS.roomFloor;
+  }
+
+  if (familyMatches(object, 'balcony_floor')) {
+    return SHARED_MATERIALS.balconyFloor;
+  }
+
+  if (familyMatches(object, 'balcony_wall')) {
+    return SHARED_MATERIALS.balconyWall;
+  }
+
+  if (
+    familyContains(object, 'stairs') ||
+    familyContains(object, 'stair')
+  ) {
+    return SHARED_MATERIALS.stairs;
+  }
+
+  return SHARED_MATERIALS.walls;
+}
+
 function setMaterialsAndShadows(root) {
   root.traverse(object => {
     if (!object.isMesh) return;
 
     object.castShadow = true;
     object.receiveShadow = true;
-
-    const colour = new THREE.Color(getObjectColour(object));
-    const settings = getMaterialSettings(object);
-
-    /*
-     * Completely replace the imported FBX materials so none of the
-     * original furniture colours remain.
-     */
-    const materialCount = Array.isArray(object.material)
-      ? Math.max(object.material.length, 1)
-      : 1;
-
-    const replacementMaterials = Array.from(
-      { length: materialCount },
-      () => new THREE.MeshStandardMaterial({
-        color: colour.clone(),
-        roughness: settings.roughness,
-        metalness: settings.metalness,
-        transparent: false,
-        opacity: 1,
-        side: THREE.DoubleSide,
-      })
-    );
-
-    object.material =
-      replacementMaterials.length === 1
-        ? replacementMaterials[0]
-        : replacementMaterials;
+    object.material = getSharedMaterial(object);
   });
 }
 
