@@ -191,31 +191,31 @@ function createMarkers() {
 
 const MATERIAL_COLOURS = {
   // Architecture
-  walls: '#f5f1e8',
-  roomFloor: '#eee7da',
-  hallway: '#e8e0d3',
-  balconyFloor: '#d9d4ca',
-  balconyWall: '#f1ede5',
-  stairs: '#ddd3c4',
+  walls: '#CFC6B7',          // Warm limestone walls
+  roomFloor: '#EEE9DF',      // Pale limestone floor
+  hallway: '#E6E0D5',        // Slightly darker than room floors
+  balconyFloor: '#D9D1C5',   // Exterior stone paving
+  balconyWall: '#CFC6B7',
+  stairs: '#D7CEC1',         // Cream stone staircase
 
   // Furniture
-  gameTable: '#8f775f',
-  sofa: '#b8aa96',
-  table: '#c9ad8b',
-  chair: '#b7a187',
-  counter: '#d8d0c3',
-  cooker: '#a8aaa6',
-  fridge: '#c7c9c6',
-  sink: '#d8d9d5',
-  toilet: '#eeeae2',
-  bed: '#d8c2a6',
-  shower: '#d7dcda',
-  treadmill: '#8f918d',
-  washingMachine: '#d7d8d5',
-  boiler: '#b9bbb7',
-  bath: '#eeeae2',
-  desk: '#c9ad8b',
-  deskChair: '#9f927f',
+  gameTable: '#8A6440',      // Oak
+  sofa: '#757A76',           // Slate grey
+  table: '#7C5A3A',          // Walnut
+  chair: '#7C5A3A',          // Walnut
+  counter: '#F3F2EF',        // White quartz
+  cooker: '#4E5358',         // Anthracite
+  fridge: '#555A60',         // Anthracite
+  sink: '#FAFAF8',           // White ceramic
+  toilet: '#FAFAF8',         // White ceramic
+  bed: '#A68F77',            // Taupe upholstery
+  shower: '#FAFAF8',         // White
+  treadmill: '#2E3134',      // Black
+  washingMachine: '#F6F6F4', // White appliance
+  boiler: '#F4F4F2',         // White appliance
+  bath: '#FAFAF8',           // White
+  desk: '#7C5A3A',           // Walnut
+  deskChair: '#7C5A3A',      // Walnut
 };
 
 /*
@@ -403,6 +403,69 @@ function makeSharedMaterial(colour, roughness = 0.82, metalness = 0) {
     side: THREE.DoubleSide,
   });
 }
+
+const SHARED_MATERIALS = {
+
+  /* ---------- Architecture ---------- */
+
+  walls: makeSharedMaterial('#CFC6B7', 0.96, 0.0),
+
+  roomFloor: makeSharedMaterial('#EEE9DF', 0.70, 0.0),
+
+  hallway: makeSharedMaterial('#E6E0D5', 0.68, 0.0),
+
+  balconyFloor: makeSharedMaterial('#D9D1C5', 0.72, 0.0),
+
+  balconyWall: makeSharedMaterial('#CFC6B7', 0.96, 0.0),
+
+  stairs: makeSharedMaterial('#D7CEC1', 0.62, 0.0),
+
+
+  /* ---------- Furniture ---------- */
+
+  gameTable: makeSharedMaterial('#8A6440', 0.52, 0.0),
+
+  sofa: makeSharedMaterial('#757A76', 0.94, 0.0),
+
+  table: makeSharedMaterial('#7C5A3A', 0.48, 0.0),
+
+  chair: makeSharedMaterial('#7C5A3A', 0.50, 0.0),
+
+  desk: makeSharedMaterial('#7C5A3A', 0.48, 0.0),
+
+  deskChair: makeSharedMaterial('#7C5A3A', 0.50, 0.0),
+
+  bed: makeSharedMaterial('#A68F77', 0.90, 0.0),
+
+
+  /* ---------- Kitchen ---------- */
+
+  counter: makeSharedMaterial('#F3F2EF', 0.24, 0.0),
+
+  cooker: makeSharedMaterial('#4E5358', 0.34, 0.18),
+
+  fridge: makeSharedMaterial('#555A60', 0.32, 0.16),
+
+  sink: makeSharedMaterial('#FAFAF8', 0.20, 0.0),
+
+
+  /* ---------- Bathroom ---------- */
+
+  toilet: makeSharedMaterial('#FAFAF8', 0.18, 0.0),
+
+  bath: makeSharedMaterial('#FAFAF8', 0.18, 0.0),
+
+  shower: makeSharedMaterial('#FAFAF8', 0.20, 0.0),
+
+
+  /* ---------- Utility ---------- */
+
+  washingMachine: makeSharedMaterial('#F6F6F4', 0.22, 0.0),
+
+  boiler: makeSharedMaterial('#F4F4F2', 0.24, 0.0),
+
+  treadmill: makeSharedMaterial('#2E3134', 0.48, 0.10),
+};
 
 const SHARED_MATERIALS = {
   walls: makeSharedMaterial(MATERIAL_COLOURS.walls),
