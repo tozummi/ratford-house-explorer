@@ -303,6 +303,210 @@ function materialSettingsForObject(object) {
   return settings;
 }
 
+const MATERIAL_COLOURS = {
+  // Architecture
+  walls: '#f5f1e8',
+  roomFloor: '#eee7da',
+  hallway: '#e8e0d3',
+  balconyFloor: '#d9d4ca',
+  balconyWall: '#f1ede5',
+  stairs: '#ddd3c4',
+
+  // Furniture
+  gameTable: '#8f775f',
+  sofa: '#b8aa96',
+  table: '#c9ad8b',
+  chair: '#b7a187',
+  counter: '#d8d0c3',
+  cooker: '#a8aaa6',
+  fridge: '#c7c9c6',
+  sink: '#d8d9d5',
+  toilet: '#eeeae2',
+  bed: '#d8c2a6',
+  shower: '#d7dcda',
+  treadmill: '#8f918d',
+  washingMachine: '#d7d8d5',
+  boiler: '#b9bbb7',
+  bath: '#eeeae2',
+  desk: '#c9ad8b',
+  deskChair: '#9f927f',
+};
+
+/*
+ * Returns the normalised name of an object and every parent above it.
+ * This lets the script detect names stored on Rhino block/component nodes.
+ */
+function getObjectFamilyNames(object) {
+  const names = [];
+  let current = object;
+
+  while (current) {
+    const name = normalise(current.name);
+
+    if (name) {
+      names.push(name);
+    }
+
+    current = current.parent;
+  }
+
+  return names;
+}
+
+/*
+ * Rhino/FBX may add suffixes such as "_1" or "_2" to duplicate names.
+ * This still recognises them correctly.
+ */
+function exportedNameMatches(name, expectedName) {
+  return (
+    name === expectedName ||
+    name.startsWith(`${expectedName}_`)
+  );
+}
+
+function familyMatches(object, expectedName) {
+  return getObjectFamilyNames(object).some(name =>
+    exportedNameMatches(name, expectedName)
+  );
+}
+
+function familyContains(object, word) {
+  return getObjectFamilyNames(object).some(name =>
+    name.includes(word)
+  );
+}
+
+function getFurnitureType(object) {
+  const furnitureTypes = [
+    'furniture_gametable',
+    'furniture_sofa',
+    'furniture_table',
+    'furniture_deskchair',
+    'furniture_chair',
+    'furniture_counter',
+    'furniture_cooker',
+    'furniture_fridge',
+    'furniture_sink',
+    'furniture_toilet',
+    'furniture_bed',
+    'furniture_shower',
+    'furniture_treadmill',
+    'furniture_washingmachine',
+    'furniture_boiler',
+    'furniture_bath',
+    'furniture_desk',
+  ];
+
+  return furnitureTypes.find(type =>
+    familyMatches(object, type)
+  ) ?? null;
+}
+
+function getObjectColour(object) {
+  const furnitureType = getFurnitureType(object);
+
+  const furnitureColours = {
+    furniture_gametable: MATERIAL_COLOURS.gameTable,
+    furniture_sofa: MATERIAL_COLOURS.sofa,
+    furniture_table: MATERIAL_COLOURS.table,
+    furniture_chair: MATERIAL_COLOURS.chair,
+    furniture_counter: MATERIAL_COLOURS.counter,
+    furniture_cooker: MATERIAL_COLOURS.cooker,
+    furniture_fridge: MATERIAL_COLOURS.fridge,
+    furniture_sink: MATERIAL_COLOURS.sink,
+    furniture_toilet: MATERIAL_COLOURS.toilet,
+    furniture_bed: MATERIAL_COLOURS.bed,
+    furniture_shower: MATERIAL_COLOURS.shower,
+    furniture_treadmill: MATERIAL_COLOURS.treadmill,
+    furniture_washingmachine: MATERIAL_COLOURS.washingMachine,
+    furniture_boiler: MATERIAL_COLOURS.boiler,
+    furniture_bath: MATERIAL_COLOURS.bath,
+    furniture_desk: MATERIAL_COLOURS.desk,
+    furniture_deskchair: MATERIAL_COLOURS.deskChair,
+  };
+
+  // Furniture is checked first.
+  if (furnitureType) {
+    return furnitureColours[furnitureType];
+  }
+
+  // Named room and balcony pieces.
+  if (familyMatches(object, 'room_hallway')) {
+    return MATERIAL_COLOURS.hallway;
+  }
+
+  if (familyMatches(object, 'room_floor')) {
+    return MATERIAL_COLOURS.roomFloor;
+  }
+
+  if (familyMatches(object, 'balcony_floor')) {
+    return MATERIAL_COLOURS.balconyFloor;
+  }
+
+  if (familyMatches(object, 'balcony_wall')) {
+    return MATERIAL_COLOURS.balconyWall;
+  }
+
+  /*
+   * Your stairs are stored collectively in components whose names
+   * contain "stairs" or "stair".
+   */
+  if (
+    familyContains(object, 'stairs') ||
+    familyContains(object, 'stair')
+  ) {
+    return MATERIAL_COLOURS.stairs;
+  }
+
+  /*
+   * Your walls are stored collectively in components whose names
+   * contain "structure", "walls" or "wall".
+   */
+  if (
+    familyContains(object, 'structure') ||
+    familyContains(object, 'walls') ||
+    familyContains(object, 'wall')
+  ) {
+    return MATERIAL_COLOURS.walls;
+  }
+
+  // Safe fallback for any unrecognised architectural object.
+  return MATERIAL_COLOURS.walls;
+}
+
+function getMaterialSettings(object) {
+  const furnitureType = getFurnitureType(object);
+
+  const settings = {
+    roughness: 0.82,
+    metalness: 0,
+  };
+
+  const metallicFurniture = [
+    'furniture_cooker',
+    'furniture_fridge',
+    'furniture_sink',
+    'furniture_shower',
+    'furniture_treadmill',
+    'furniture_washingmachine',
+    'furniture_boiler',
+  ];
+
+  if (metallicFurniture.includes(furnitureType)) {
+    settings.roughness = 0.48;
+    settings.metalness = 0.08;
+  }
+
+  if (
+    furnitureType === 'furniture_toilet' ||
+    furnitureType === 'furniture_bath'
+  ) {
+    settings.roughness = 0.34;
+  }
+
+  return settings;
+}
+
 function setMaterialsAndShadows(root) {
   root.traverse(object => {
     if (!object.isMesh) return;
@@ -310,25 +514,33 @@ function setMaterialsAndShadows(root) {
     object.castShadow = true;
     object.receiveShadow = true;
 
-    const colour = new THREE.Color(colourForObject(object));
-    const settings = materialSettingsForObject(object);
+    const colour = new THREE.Color(getObjectColour(object));
+    const settings = getMaterialSettings(object);
 
-    const sourceMaterials = Array.isArray(object.material)
-      ? object.material
-      : [object.material];
+    /*
+     * Completely replace the imported FBX materials so none of the
+     * original furniture colours remain.
+     */
+    const materialCount = Array.isArray(object.material)
+      ? Math.max(object.material.length, 1)
+      : 1;
 
-    const newMaterials = sourceMaterials.map(() => {
-      return new THREE.MeshStandardMaterial({
-        color: colour,
+    const replacementMaterials = Array.from(
+      { length: materialCount },
+      () => new THREE.MeshStandardMaterial({
+        color: colour.clone(),
         roughness: settings.roughness,
         metalness: settings.metalness,
-      });
-    });
+        transparent: false,
+        opacity: 1,
+        side: THREE.DoubleSide,
+      })
+    );
 
     object.material =
-      newMaterials.length === 1
-        ? newMaterials[0]
-        : newMaterials;
+      replacementMaterials.length === 1
+        ? replacementMaterials[0]
+        : replacementMaterials;
   });
 }
 
