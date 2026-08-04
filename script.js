@@ -861,7 +861,7 @@ loader.load(
   object => {
     model = object;
     model.name ||= 'ratford_house';
-    setMaterialsAndShadows(model);
+    //setMaterialsAndShadows(model);
     floorRoot.add(model);
 
     modelBounds = new THREE.Box3().setFromObject(model);
