@@ -190,32 +190,42 @@ function createMarkers() {
 
 
 const MATERIAL_COLOURS = {
-  // Architecture
-  walls: '#B5AEA1',          // Darker warm stone
+
+  /* ---------- Architecture ---------- */
+
+  walls: '#B5AEA1',          // Warm stone walls
   roomFloor: '#DDE4D7',      // Pale sage limestone
   hallway: '#D2DCCF',        // Slightly darker sage
-  balconyFloor: '#D0C8BB',   // Exterior stone
+  balconyFloor: '#D0C8BB',   // Exterior stone paving
   balconyWall: '#B5AEA1',
-  stairs: '#CEC5B8',         // Light stone staircase
+  stairs: '#CEC5B8',         // Cream stone staircase
 
-  // Furniture
+
+  /* ---------- Furniture ---------- */
+
   gameTable: '#44484C',      // Anthracite
-  sofa: '#757A76',
-  table: '#7C5A3A',
-  chair: '#7C5A3A',
-  counter: '#F3F2EF',
-  cooker: '#4E5358',
-  fridge: '#555A60',
-  sink: '#FAFAF8',
-  toilet: '#FAFAF8',
-  bed: '#A68F77',
-  shower: '#FAFAF8',
-  treadmill: '#2E3134',
-  washingMachine: '#F6F6F4',
-  boiler: '#F4F4F2',
-  bath: '#FAFAF8',
-  desk: '#7C5A3A',
-  deskChair: '#7C5A3A',
+  sofa: '#757A76',           // Slate grey fabric
+  table: '#7C5A3A',          // Walnut
+  chair: '#757A76',          // Same fabric colour as sofa
+
+  counter: '#F3F2EF',        // White quartz
+  cooker: '#4E5358',         // Anthracite
+  fridge: '#555A60',         // Anthracite
+
+  sink: '#FAFAF8',           // White ceramic
+  toilet: '#FAFAF8',         // White ceramic
+  bath: '#FAFAF8',           // White ceramic
+  shower: '#FAFAF8',         // White ceramic
+
+  bed: '#A68F77',            // Warm taupe upholstery
+
+  treadmill: '#2E3134',      // Black
+
+  washingMachine: '#F6F6F4', // White appliance
+  boiler: '#F4F4F2',         // White appliance
+
+  desk: '#4E5358',           // Anthracite
+  deskChair: '#4E5358',      // Anthracite
 };
 
 /*
@@ -408,65 +418,64 @@ const SHARED_MATERIALS = {
 
   /* ---------- Architecture ---------- */
 
-  walls: makeSharedMaterial('#CFC6B7', 0.96, 0.0),
+  walls: makeSharedMaterial(MATERIAL_COLOURS.walls, 0.96, 0.0),
 
-  roomFloor: makeSharedMaterial('#EEE9DF', 0.70, 0.0),
+  roomFloor: makeSharedMaterial(MATERIAL_COLOURS.roomFloor, 0.70, 0.0),
 
-  hallway: makeSharedMaterial('#E6E0D5', 0.68, 0.0),
+  hallway: makeSharedMaterial(MATERIAL_COLOURS.hallway, 0.68, 0.0),
 
-  balconyFloor: makeSharedMaterial('#D9D1C5', 0.72, 0.0),
+  balconyFloor: makeSharedMaterial(MATERIAL_COLOURS.balconyFloor, 0.72, 0.0),
 
-  balconyWall: makeSharedMaterial('#CFC6B7', 0.96, 0.0),
+  balconyWall: makeSharedMaterial(MATERIAL_COLOURS.balconyWall, 0.96, 0.0),
 
-  stairs: makeSharedMaterial('#D7CEC1', 0.62, 0.0),
+  stairs: makeSharedMaterial(MATERIAL_COLOURS.stairs, 0.62, 0.0),
 
 
   /* ---------- Furniture ---------- */
 
-  gameTable: makeSharedMaterial('#8A6440', 0.52, 0.0),
+  gameTable: makeSharedMaterial(MATERIAL_COLOURS.gameTable, 0.52, 0.18),
 
-  sofa: makeSharedMaterial('#757A76', 0.94, 0.0),
+  sofa: makeSharedMaterial(MATERIAL_COLOURS.sofa, 0.94, 0.0),
 
-  table: makeSharedMaterial('#7C5A3A', 0.48, 0.0),
+  table: makeSharedMaterial(MATERIAL_COLOURS.table, 0.48, 0.0),
 
-  chair: makeSharedMaterial('#7C5A3A', 0.50, 0.0),
+  chair: makeSharedMaterial(MATERIAL_COLOURS.chair, 0.94, 0.0),
 
-  desk: makeSharedMaterial('#7C5A3A', 0.48, 0.0),
+  desk: makeSharedMaterial(MATERIAL_COLOURS.desk, 0.34, 0.12),
 
-  deskChair: makeSharedMaterial('#7C5A3A', 0.50, 0.0),
+  deskChair: makeSharedMaterial(MATERIAL_COLOURS.deskChair, 0.34, 0.12),
 
-  bed: makeSharedMaterial('#A68F77', 0.90, 0.0),
+  bed: makeSharedMaterial(MATERIAL_COLOURS.bed, 0.90, 0.0),
 
 
   /* ---------- Kitchen ---------- */
 
-  counter: makeSharedMaterial('#F3F2EF', 0.24, 0.0),
+  counter: makeSharedMaterial(MATERIAL_COLOURS.counter, 0.24, 0.0),
 
-  cooker: makeSharedMaterial('#4E5358', 0.34, 0.18),
+  cooker: makeSharedMaterial(MATERIAL_COLOURS.cooker, 0.34, 0.18),
 
-  fridge: makeSharedMaterial('#555A60', 0.32, 0.16),
+  fridge: makeSharedMaterial(MATERIAL_COLOURS.fridge, 0.32, 0.16),
 
-  sink: makeSharedMaterial('#FAFAF8', 0.20, 0.0),
+  sink: makeSharedMaterial(MATERIAL_COLOURS.sink, 0.20, 0.0),
 
 
   /* ---------- Bathroom ---------- */
 
-  toilet: makeSharedMaterial('#FAFAF8', 0.18, 0.0),
+  toilet: makeSharedMaterial(MATERIAL_COLOURS.toilet, 0.18, 0.0),
 
-  bath: makeSharedMaterial('#FAFAF8', 0.18, 0.0),
+  bath: makeSharedMaterial(MATERIAL_COLOURS.bath, 0.18, 0.0),
 
-  shower: makeSharedMaterial('#FAFAF8', 0.20, 0.0),
+  shower: makeSharedMaterial(MATERIAL_COLOURS.shower, 0.20, 0.0),
 
 
   /* ---------- Utility ---------- */
 
-  washingMachine: makeSharedMaterial('#F6F6F4', 0.22, 0.0),
+  washingMachine: makeSharedMaterial(MATERIAL_COLOURS.washingMachine, 0.22, 0.0),
 
-  boiler: makeSharedMaterial('#F4F4F2', 0.24, 0.0),
+  boiler: makeSharedMaterial(MATERIAL_COLOURS.boiler, 0.24, 0.0),
 
-  treadmill: makeSharedMaterial('#2E3134', 0.48, 0.10),
+  treadmill: makeSharedMaterial(MATERIAL_COLOURS.treadmill, 0.48, 0.10),
 };
-
 
 
 function getSharedMaterial(object) {
