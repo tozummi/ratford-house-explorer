@@ -257,7 +257,8 @@ function getObjectFamilyNames(object) {
 function exportedNameMatches(name, expectedName) {
   return (
     name === expectedName ||
-    name.startsWith(`${expectedName}_`)
+    name.startsWith(`${expectedName}_`) ||
+    name.includes(expectedName)
   );
 }
 
