@@ -467,32 +467,7 @@ const SHARED_MATERIALS = {
   treadmill: makeSharedMaterial('#2E3134', 0.48, 0.10),
 };
 
-const SHARED_MATERIALS = {
-  walls: makeSharedMaterial(MATERIAL_COLOURS.walls),
-  roomFloor: makeSharedMaterial(MATERIAL_COLOURS.roomFloor),
-  hallway: makeSharedMaterial(MATERIAL_COLOURS.hallway),
-  balconyFloor: makeSharedMaterial(MATERIAL_COLOURS.balconyFloor),
-  balconyWall: makeSharedMaterial(MATERIAL_COLOURS.balconyWall),
-  stairs: makeSharedMaterial(MATERIAL_COLOURS.stairs),
 
-  gameTable: makeSharedMaterial(MATERIAL_COLOURS.gameTable),
-  sofa: makeSharedMaterial(MATERIAL_COLOURS.sofa),
-  table: makeSharedMaterial(MATERIAL_COLOURS.table),
-  chair: makeSharedMaterial(MATERIAL_COLOURS.chair),
-  counter: makeSharedMaterial(MATERIAL_COLOURS.counter),
-  cooker: makeSharedMaterial(MATERIAL_COLOURS.cooker, 0.48, 0.08),
-  fridge: makeSharedMaterial(MATERIAL_COLOURS.fridge, 0.48, 0.08),
-  sink: makeSharedMaterial(MATERIAL_COLOURS.sink, 0.48, 0.08),
-  toilet: makeSharedMaterial(MATERIAL_COLOURS.toilet, 0.34, 0),
-  bed: makeSharedMaterial(MATERIAL_COLOURS.bed),
-  shower: makeSharedMaterial(MATERIAL_COLOURS.shower, 0.48, 0.08),
-  treadmill: makeSharedMaterial(MATERIAL_COLOURS.treadmill, 0.48, 0.08),
-  washingMachine: makeSharedMaterial(MATERIAL_COLOURS.washingMachine, 0.48, 0.08),
-  boiler: makeSharedMaterial(MATERIAL_COLOURS.boiler, 0.48, 0.08),
-  bath: makeSharedMaterial(MATERIAL_COLOURS.bath, 0.34, 0),
-  desk: makeSharedMaterial(MATERIAL_COLOURS.desk),
-  deskChair: makeSharedMaterial(MATERIAL_COLOURS.deskChair),
-};
 
 function getSharedMaterial(object) {
   const furnitureType = getFurnitureType(object);
