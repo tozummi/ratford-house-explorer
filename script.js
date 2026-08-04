@@ -33,15 +33,49 @@ renderer.toneMappingExposure = 1.05;
 viewer.prepend(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
+
+// Smooth movement
 controls.enableDamping = true;
-controls.dampingFactor = 0.075;
-controls.enablePan = false;
+controls.dampingFactor = 0.085;
+
+// Pan
+controls.enablePan = true;
+controls.panSpeed = 0.7;
+controls.screenSpacePanning = true;
+
+// Rotate
+controls.enableRotate = true;
+controls.rotateSpeed = 0.55;
+
+// Zoom
+controls.enableZoom = true;
+controls.zoomSpeed = 0.8;
+controls.zoomToCursor = true;
+
+// Prevent flipping underneath the model
 controls.minPolarAngle = THREE.MathUtils.degToRad(28);
 controls.maxPolarAngle = THREE.MathUtils.degToRad(72);
+
+// Restrict horizontal rotation
 controls.minAzimuthAngle = THREE.MathUtils.degToRad(-42);
 controls.maxAzimuthAngle = THREE.MathUtils.degToRad(42);
-controls.zoomToCursor = true;
-controls.screenSpacePanning = false;
+
+// Desktop controls
+controls.mouseButtons.LEFT = THREE.MOUSE.PAN;
+controls.mouseButtons.MIDDLE = THREE.MOUSE.DOLLY;
+controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+
+// Mobile controls
+controls.touches.ONE = THREE.TOUCH.ROTATE;
+controls.touches.TWO = THREE.TOUCH.DOLLY_PAN;
+
+// Prevent browser scrolling/zooming while using the viewer
+renderer.domElement.style.touchAction = 'none';
+
+// Prevent the browser menu opening during right-click rotation
+renderer.domElement.addEventListener('contextmenu', event => {
+  event.preventDefault();
+});
 
 scene.add(new THREE.HemisphereLight(0xfffbf1, 0x899083, 2.2));
 const sun = new THREE.DirectionalLight(0xfff5df, 3.1);
@@ -313,23 +347,87 @@ function resetView() {
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let pointerDown = null;
+const activePointers = new Set();
+let multiTouchGesture = false;
 
 renderer.domElement.addEventListener('pointerdown', event => {
-  pointerDown = { x: event.clientX, y: event.clientY };
+  activePointers.add(event.pointerId);
+
+  if (activePointers.size > 1) {
+    multiTouchGesture = true;
+    pointerDown = null;
+    return;
+  }
+
+  pointerDown = {
+    id: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    moved: false,
+  };
+});
+
+renderer.domElement.addEventListener('pointermove', event => {
+  if (!pointerDown || pointerDown.id !== event.pointerId) return;
+
+  const moved = Math.hypot(
+    event.clientX - pointerDown.x,
+    event.clientY - pointerDown.y
+  );
+
+  if (moved > 8) {
+    pointerDown.moved = true;
+  }
 });
 
 renderer.domElement.addEventListener('pointerup', event => {
-  if (!pointerDown) return;
-  const moved = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+  activePointers.delete(event.pointerId);
+
+  if (multiTouchGesture) {
+    pointerDown = null;
+
+    if (activePointers.size === 0) {
+      multiTouchGesture = false;
+    }
+
+    return;
+  }
+
+  if (!pointerDown || pointerDown.id !== event.pointerId) return;
+
+  const wasTap = !pointerDown.moved;
   pointerDown = null;
-  if (moved > 8 || !markerRoot.visible) return;
+
+  // Only a clean left-click or one-finger tap opens a room.
+  if (!wasTap || !markerRoot.visible || event.button !== 0) return;
 
   const rect = renderer.domElement.getBoundingClientRect();
-  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  pointer.x =
+    ((event.clientX - rect.left) / rect.width) * 2 - 1;
+
+  pointer.y =
+    -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
   raycaster.setFromCamera(pointer, camera);
-  const hit = raycaster.intersectObjects(markerRoot.children, false)[0];
-  if (hit?.object?.userData?.roomNode) focusRoom(hit.object.userData.roomNode);
+
+  const hit = raycaster.intersectObjects(
+    markerRoot.children,
+    false
+  )[0];
+
+  if (hit?.object?.userData?.roomNode) {
+    focusRoom(hit.object.userData.roomNode);
+  }
+});
+
+renderer.domElement.addEventListener('pointercancel', event => {
+  activePointers.delete(event.pointerId);
+  pointerDown = null;
+
+  if (activePointers.size === 0) {
+    multiTouchGesture = false;
+  }
 });
 
 floorTabs.forEach(tab => tab.addEventListener('click', () => setFloor(tab.dataset.floor)));
