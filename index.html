@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f3eee5" />
+  <title>Explore the House</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Ratford Bridge Farmhouse</p>
+        <h1>Explore the House</h1>
+      </div>
+      <button id="resetView" class="icon-button" type="button" aria-label="Reset view" title="Reset view">↻</button>
+    </header>
+
+    <nav class="floor-tabs" aria-label="Choose a floor">
+      <button class="floor-tab is-active" type="button" data-floor="ground">Ground</button>
+      <button class="floor-tab" type="button" data-floor="first">First</button>
+      <button class="floor-tab" type="button" data-floor="second">Loft</button>
+    </nav>
+
+    <section id="viewer" class="viewer" aria-label="Interactive 3D house model">
+      <div id="loading" class="loading-panel" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <strong>Preparing the house…</strong>
+        <small id="loadingDetail">Loading the 3D model</small>
+      </div>
+
+      <div class="gesture-hint" aria-hidden="true">Drag to rotate · pinch to zoom</div>
+
+      <aside id="roomCard" class="room-card" aria-live="polite" hidden>
+        <button id="closeRoom" class="close-button" type="button" aria-label="Close room information">×</button>
+        <p id="roomFloor" class="room-floor"></p>
+        <h2 id="roomName"></h2>
+        <div id="roomDetails" class="room-details"></div>
+      </aside>
+    </section>
+
+    <p id="statusMessage" class="status-message" aria-live="polite"></p>
+  </main>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

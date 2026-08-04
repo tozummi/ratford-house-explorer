@@ -1,0 +1,407 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.180.0/+esm';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/controls/OrbitControls.js/+esm';
+import { FBXLoader } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/FBXLoader.js/+esm';
+
+const MODEL_URL = './assets/RBFH.fbx';
+
+// Add or edit sleeping arrangements here later.
+const ROOM_DATA = {
+  // first_bedroom_5: { occupants: ['Name 1', 'Name 2'], notes: ['Double bed', 'Ensuite'] },
+};
+
+const viewer = document.querySelector('#viewer');
+const loading = document.querySelector('#loading');
+const loadingDetail = document.querySelector('#loadingDetail');
+const statusMessage = document.querySelector('#statusMessage');
+const resetButton = document.querySelector('#resetView');
+const closeRoomButton = document.querySelector('#closeRoom');
+const roomCard = document.querySelector('#roomCard');
+const roomFloor = document.querySelector('#roomFloor');
+const roomName = document.querySelector('#roomName');
+const roomDetails = document.querySelector('#roomDetails');
+const floorTabs = [...document.querySelectorAll('.floor-tab')];
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(34, 1, 0.01, 5000);
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.8));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+viewer.prepend(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.075;
+controls.enablePan = false;
+controls.minPolarAngle = THREE.MathUtils.degToRad(28);
+controls.maxPolarAngle = THREE.MathUtils.degToRad(72);
+controls.minAzimuthAngle = THREE.MathUtils.degToRad(-42);
+controls.maxAzimuthAngle = THREE.MathUtils.degToRad(42);
+controls.zoomToCursor = true;
+controls.screenSpacePanning = false;
+
+scene.add(new THREE.HemisphereLight(0xfffbf1, 0x899083, 2.2));
+const sun = new THREE.DirectionalLight(0xfff5df, 3.1);
+sun.position.set(7, 11, 8);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0xdbe4d7, 1.0);
+fill.position.set(-8, 6, -5);
+scene.add(fill);
+
+const floorRoot = new THREE.Group();
+scene.add(floorRoot);
+const markerRoot = new THREE.Group();
+scene.add(markerRoot);
+
+let model = null;
+let modelBounds = null;
+let currentFloor = 'ground';
+let roomNodes = [];
+let selectedRoom = null;
+let defaultView = null;
+let tween = null;
+
+const floorAliases = {
+  ground: ['ground'],
+  first: ['first'],
+  second: ['second', 'loft'],
+};
+
+const ignoredRoomTerms = ['structure', 'stairs', 'stair', 'wall', 'walls', 'floor'];
+
+function normalise(value = '') {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function prettyName(value) {
+  return normalise(value)
+    .replace(/^(ground|first|second|loft)_/, '')
+    .split('_')
+    .filter(Boolean)
+    .map(word => word === 'wc' ? 'WC' : word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function floorForName(value) {
+  const name = normalise(value);
+  for (const [floor, aliases] of Object.entries(floorAliases)) {
+    if (aliases.some(alias => name.startsWith(`${alias}_`) || name === alias)) return floor;
+  }
+  return null;
+}
+
+function inheritedFloor(node) {
+  let item = node;
+  while (item) {
+    const found = floorForName(item.name);
+    if (found) return found;
+    item = item.parent;
+  }
+  return null;
+}
+
+function isInteractiveRoom(node) {
+  const name = normalise(node.name);
+  const floor = floorForName(name);
+  if (!floor) return false;
+  if (ignoredRoomTerms.some(term => name.includes(term))) return false;
+  return name.split('_').length >= 2;
+}
+
+function makeOrbTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(64, 64, 4, 64, 64, 58);
+  gradient.addColorStop(0, 'rgba(255,255,255,1)');
+  gradient.addColorStop(0.17, 'rgba(215,229,205,1)');
+  gradient.addColorStop(0.42, 'rgba(127,141,120,.9)');
+  gradient.addColorStop(1, 'rgba(127,141,120,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 128, 128);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+const orbTexture = makeOrbTexture();
+
+function createMarkers() {
+  markerRoot.clear();
+  const visibleRooms = roomNodes.filter(node => inheritedFloor(node) === currentFloor && node.visible);
+  const globalSize = modelBounds.getSize(new THREE.Vector3()).length();
+
+  visibleRooms.forEach(room => {
+    const box = new THREE.Box3().setFromObject(room);
+    if (box.isEmpty()) return;
+    const centre = box.getCenter(new THREE.Vector3());
+    centre.y = box.max.y + globalSize * 0.018;
+
+    const material = new THREE.SpriteMaterial({ map: orbTexture, transparent: true, depthWrite: false, depthTest: false });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.copy(centre);
+    const markerSize = globalSize * 0.035;
+    sprite.scale.set(markerSize, markerSize, markerSize);
+    sprite.userData.roomNode = room;
+    sprite.renderOrder = 20;
+    markerRoot.add(sprite);
+  });
+}
+
+function setMaterialsAndShadows(root) {
+  const ivory = new THREE.Color('#f5f1e8');
+  root.traverse(object => {
+    if (!object.isMesh) return;
+    object.castShadow = true;
+    object.receiveShadow = true;
+
+    const original = Array.isArray(object.material) ? object.material : [object.material];
+    object.material = original.map(material => {
+      const next = material?.clone?.() ?? new THREE.MeshStandardMaterial();
+      if (!next.color) next.color = ivory.clone();
+      next.roughness = 0.82;
+      next.metalness = 0;
+      next.transparent = Boolean(next.transparent);
+      return next;
+    });
+    if (object.material.length === 1) object.material = object.material[0];
+  });
+}
+
+function findNamedRoomNodes(root) {
+  const candidates = [];
+  root.traverse(node => {
+    if (node === root || !node.name || !isInteractiveRoom(node)) return;
+    const hasGeometry = Boolean(node.getObjectByProperty('isMesh', true));
+    if (hasGeometry) candidates.push(node);
+  });
+
+  // Avoid creating markers for named children nested inside a named room block.
+  return candidates.filter(candidate => {
+    let parent = candidate.parent;
+    while (parent && parent !== root) {
+      if (isInteractiveRoom(parent)) return false;
+      parent = parent.parent;
+    }
+    return true;
+  });
+}
+
+function setFloor(floor, { fit = true } = {}) {
+  currentFloor = floor;
+  clearSelection(false);
+
+  model.traverse(node => {
+    const taggedFloor = inheritedFloor(node);
+    if (taggedFloor) node.visible = taggedFloor === floor;
+  });
+
+  floorTabs.forEach(tab => tab.classList.toggle('is-active', tab.dataset.floor === floor));
+  createMarkers();
+  if (fit) fitVisibleModel(true);
+}
+
+function visibleBounds() {
+  const box = new THREE.Box3();
+  model.traverse(object => {
+    if (!object.visible || !object.isMesh) return;
+    box.expandByObject(object);
+  });
+  return box.isEmpty() ? modelBounds.clone() : box;
+}
+
+function fitVisibleModel(animated = false) {
+  const box = visibleBounds();
+  const size = box.getSize(new THREE.Vector3());
+  const centre = box.getCenter(new THREE.Vector3());
+  const maxSize = Math.max(size.x, size.y, size.z);
+  const distance = maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2))) * 1.28;
+  const direction = new THREE.Vector3(1.05, 1.05, 1.2).normalize();
+  const destination = centre.clone().add(direction.multiplyScalar(distance));
+
+  controls.minDistance = maxSize * 0.5;
+  controls.maxDistance = maxSize * 3.3;
+
+  if (!defaultView) defaultView = { position: destination.clone(), target: centre.clone() };
+  moveCamera(destination, centre, animated ? 650 : 0);
+}
+
+function moveCamera(position, target, duration = 600) {
+  if (duration <= 0) {
+    camera.position.copy(position);
+    controls.target.copy(target);
+    controls.update();
+    return;
+  }
+  tween = {
+    start: performance.now(),
+    duration,
+    fromPosition: camera.position.clone(),
+    toPosition: position.clone(),
+    fromTarget: controls.target.clone(),
+    toTarget: target.clone(),
+  };
+}
+
+function focusRoom(room) {
+  clearSelection(false);
+  selectedRoom = room;
+  markerRoot.visible = false;
+  highlightRoom(room, true);
+
+  const box = new THREE.Box3().setFromObject(room);
+  const size = box.getSize(new THREE.Vector3());
+  const centre = box.getCenter(new THREE.Vector3());
+  const distance = Math.max(size.x, size.y, size.z) * 2.4 + modelBounds.getSize(new THREE.Vector3()).length() * 0.04;
+  const direction = camera.position.clone().sub(controls.target).normalize();
+  direction.y = Math.max(direction.y, 0.5);
+  direction.normalize();
+  moveCamera(centre.clone().add(direction.multiplyScalar(distance)), centre, 700);
+  showRoomCard(room);
+}
+
+function highlightRoom(room, active) {
+  room.traverse(object => {
+    if (!object.isMesh) return;
+    const materials = Array.isArray(object.material) ? object.material : [object.material];
+    materials.forEach(material => {
+      if (!material?.color) return;
+      if (!material.userData.originalColor) material.userData.originalColor = material.color.clone();
+      if ('emissive' in material && !material.userData.originalEmissive) material.userData.originalEmissive = material.emissive.clone();
+      material.color.copy(active ? new THREE.Color('#a5b49c') : material.userData.originalColor);
+      if ('emissive' in material) {
+        material.emissive.copy(active ? new THREE.Color('#34452f') : material.userData.originalEmissive);
+        material.emissiveIntensity = active ? 0.22 : 0;
+      }
+    });
+  });
+}
+
+function showRoomCard(room) {
+  const key = normalise(room.name);
+  const data = ROOM_DATA[key] ?? {};
+  roomFloor.textContent = `${currentFloor === 'second' ? 'Loft' : prettyName(currentFloor)} floor`;
+  roomName.textContent = prettyName(room.name);
+
+  const lines = [];
+  if (data.occupants?.length) lines.push(`<p><strong>Staying here:</strong> ${data.occupants.join(', ')}</p>`);
+  if (data.notes?.length) data.notes.forEach(note => lines.push(`<p>${note}</p>`));
+  if (!lines.length) lines.push('<p>Room information can be added once the sleeping plan is final.</p>');
+  roomDetails.innerHTML = lines.join('');
+  roomCard.hidden = false;
+}
+
+function clearSelection(refit = true) {
+  if (selectedRoom) highlightRoom(selectedRoom, false);
+  selectedRoom = null;
+  roomCard.hidden = true;
+  markerRoot.visible = true;
+  if (refit && model) fitVisibleModel(true);
+}
+
+function resetView() {
+  clearSelection(false);
+  fitVisibleModel(true);
+}
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let pointerDown = null;
+
+renderer.domElement.addEventListener('pointerdown', event => {
+  pointerDown = { x: event.clientX, y: event.clientY };
+});
+
+renderer.domElement.addEventListener('pointerup', event => {
+  if (!pointerDown) return;
+  const moved = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+  pointerDown = null;
+  if (moved > 8 || !markerRoot.visible) return;
+
+  const rect = renderer.domElement.getBoundingClientRect();
+  pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hit = raycaster.intersectObjects(markerRoot.children, false)[0];
+  if (hit?.object?.userData?.roomNode) focusRoom(hit.object.userData.roomNode);
+});
+
+floorTabs.forEach(tab => tab.addEventListener('click', () => setFloor(tab.dataset.floor)));
+resetButton.addEventListener('click', resetView);
+closeRoomButton.addEventListener('click', () => clearSelection(true));
+
+function resize() {
+  const width = viewer.clientWidth;
+  const height = viewer.clientHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height, false);
+}
+new ResizeObserver(resize).observe(viewer);
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  if (tween) {
+    const elapsed = Math.min(1, (now - tween.start) / tween.duration);
+    const eased = 1 - Math.pow(1 - elapsed, 3);
+    camera.position.lerpVectors(tween.fromPosition, tween.toPosition, eased);
+    controls.target.lerpVectors(tween.fromTarget, tween.toTarget, eased);
+    if (elapsed >= 1) tween = null;
+  }
+  controls.update();
+  renderer.render(scene, camera);
+}
+requestAnimationFrame(animate);
+
+const loader = new FBXLoader();
+loader.load(
+  MODEL_URL,
+  object => {
+    model = object;
+    model.name ||= 'ratford_house';
+    setMaterialsAndShadows(model);
+    floorRoot.add(model);
+
+    modelBounds = new THREE.Box3().setFromObject(model);
+    const centre = modelBounds.getCenter(new THREE.Vector3());
+    model.position.sub(centre);
+    modelBounds = new THREE.Box3().setFromObject(model);
+
+    roomNodes = findNamedRoomNodes(model);
+    console.group('Ratford model objects');
+    model.traverse(node => { if (node.name) console.log(node.type, node.name); });
+    console.groupEnd();
+
+    const foundFloors = new Set();
+    model.traverse(node => { const floor = floorForName(node.name); if (floor) foundFloors.add(floor); });
+
+    if (!foundFloors.size) {
+      statusMessage.textContent = 'The model loaded, but floor names were not detected. Open the browser console to review exported object names.';
+      roomNodes = [];
+      model.visible = true;
+      fitVisibleModel(false);
+    } else {
+      setFloor(foundFloors.has('ground') ? 'ground' : [...foundFloors][0], { fit: false });
+      fitVisibleModel(false);
+      statusMessage.textContent = roomNodes.length
+        ? 'Tap a glowing marker to explore a room.'
+        : 'The model loaded. Room markers will appear when exported block names match the room names.';
+    }
+
+    loading.hidden = true;
+  },
+  progress => {
+    if (progress.total) loadingDetail.textContent = `${Math.round((progress.loaded / progress.total) * 100)}% loaded`;
+  },
+  error => {
+    console.error(error);
+    loadingDetail.textContent = 'The model could not be loaded.';
+    statusMessage.textContent = 'Check that assets/RBFH.fbx is uploaded with the website files.';
+  }
+);

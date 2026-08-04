@@ -1,0 +1,183 @@
+:root {
+  --cream: #f3eee5;
+  --cream-light: #fbf8f2;
+  --sage: #7f8d78;
+  --sage-dark: #4f5d4b;
+  --sage-soft: #dfe5da;
+  --text: #2f352e;
+  --muted: #747b71;
+  --line: rgba(79, 93, 75, 0.16);
+  --shadow: 0 16px 42px rgba(68, 75, 64, 0.13);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--cream);
+  color: var(--text);
+  font-family: Georgia, "Times New Roman", serif;
+  overscroll-behavior: none;
+}
+button { font: inherit; }
+
+.app-shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  padding: 18px 14px 24px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.eyebrow {
+  margin: 0 0 3px;
+  color: var(--sage-dark);
+  font-size: 0.76rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+h1 { margin: 0; font-size: clamp(1.55rem, 5vw, 2.35rem); font-weight: 500; }
+
+.icon-button, .close-button {
+  border: 1px solid var(--line);
+  background: rgba(251, 248, 242, 0.9);
+  color: var(--sage-dark);
+  cursor: pointer;
+}
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1.45rem;
+}
+
+.floor-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+  padding: 5px;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(251, 248, 242, 0.72);
+}
+.floor-tab {
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.floor-tab.is-active {
+  background: var(--sage);
+  color: white;
+}
+
+.viewer {
+  position: relative;
+  width: 100%;
+  height: min(70vh, 680px);
+  min-height: 460px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: radial-gradient(circle at 50% 30%, #fffdf8 0, #eee8dd 72%);
+  touch-action: none;
+}
+.viewer canvas { display: block; width: 100%; height: 100%; }
+
+.loading-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  background: var(--cream-light);
+  text-align: center;
+}
+.loading-panel[hidden] { display: none; }
+.loading-panel small { color: var(--muted); }
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--sage-soft);
+  border-top-color: var(--sage-dark);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.gesture-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  z-index: 3;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 28px);
+  padding: 7px 11px;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 999px;
+  background: rgba(79, 93, 75, 0.72);
+  color: white;
+  font-family: Arial, sans-serif;
+  font-size: 0.75rem;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.room-card {
+  position: absolute;
+  z-index: 8;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  padding: 17px 48px 17px 18px;
+  border: 1px solid rgba(79, 93, 75, 0.2);
+  border-radius: 19px;
+  background: rgba(251, 248, 242, 0.96);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  animation: card-in 220ms ease-out;
+}
+.room-card[hidden] { display: none; }
+@keyframes card-in { from { opacity: 0; transform: translateY(14px); } }
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-family: Arial, sans-serif;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+.room-floor {
+  margin: 0 0 4px;
+  color: var(--sage-dark);
+  font-size: 0.76rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.room-card h2 { margin: 0 0 8px; font-size: 1.45rem; font-weight: 500; }
+.room-details { color: var(--muted); line-height: 1.45; }
+.room-details p { margin: 4px 0; }
+.status-message { margin: 9px 4px 0; min-height: 1.2em; color: var(--muted); font-size: .84rem; }
+
+@media (min-width: 720px) {
+  .app-shell { padding-top: 28px; }
+  .room-card { left: auto; width: 330px; }
+}
+
+@media (max-height: 720px) {
+  .viewer { min-height: 390px; height: 62vh; }
+}
