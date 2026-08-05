@@ -181,3 +181,18 @@ h1 { margin: 0; font-size: clamp(1.55rem, 5vw, 2.35rem); font-weight: 500; }
 @media (max-height: 720px) {
   .viewer { min-height: 390px; height: 62vh; }
 }
+
+.room-subtitle {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.room-notes {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.room-notes li {
+  margin: 3px 0;
+}
