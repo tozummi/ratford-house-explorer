@@ -6,7 +6,317 @@ const MODEL_URL = './assets/RBFH.fbx';
 
 // Add or edit sleeping arrangements here later.
 const ROOM_DATA = {
-  // first_bedroom_5: { occupants: ['Name 1', 'Name 2'], notes: ['Double bed', 'Ensuite'] },
+  /* ---------- Ground floor shared spaces ---------- */
+
+  ground_gamesroom: {
+    displayName: 'Games Room',
+    notes: [
+      'Games table',
+      'Sofa seating',
+    ],
+  },
+
+  ground_diningroom: {
+    displayName: 'Dining Room',
+    notes: [
+      'Seats up to 14',
+      'Bifold doors to back patio',
+    ],
+  },
+
+  ground_mainkitchen: {
+    displayName: 'Main Kitchen',
+    notes: [
+      'Main cooking area',
+      'Bifold doors to back patio',
+    ],
+  },
+
+  ground_butlerskitchen: {
+    displayName: "Butler's Kitchen",
+    notes: [
+      'Additional preparation space',
+    ],
+  },
+
+  ground_washroom: {
+    displayName: 'Washroom',
+    notes: [
+      'Toilet',
+      'Sink',
+    ],
+  },
+
+  ground_livingroom: {
+    displayName: 'Living Room',
+    notes: [
+      'Large cinema projector',
+      'Bifold doors to back patio',
+    ],
+  },
+
+  ground_laundryroom: {
+    displayName: 'Laundry Room',
+    notes: [
+      'Washing machine',
+      'Boiler',
+    ],
+  },
+
+  ground_hallway: {
+    displayName: 'Ground-Floor Hallway',
+  },
+
+
+  /* ---------- Ground-floor bedrooms ---------- */
+
+  ground_bedroom_9: {
+    displayName: 'Bedroom 9',
+    occupants: [
+      'Abdus Salaam',
+      'Tanya',
+      'Saara',
+    ],
+    notes: [
+      'Ensuite Bathroom 9',
+    ],
+  },
+
+  ground_bathroom_9: {
+    displayName: 'Bathroom 9',
+    subtitle: 'Ensuite for Bedroom 9',
+    notes: [
+      'Bathtub',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  ground_bedroom_10: {
+    displayName: 'Bedroom 10',
+    occupants: [
+      'Deen',
+      'Eesa',
+    ],
+    notes: [
+      'Children’s room',
+      'Spare sofa bed for a parent',
+      'Ensuite Bathroom 10',
+    ],
+  },
+
+  ground_bathroom_10: {
+    displayName: 'Bathroom 10',
+    subtitle: 'Ensuite for Bedroom 10',
+    notes: [
+      'Toilet',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+
+  /* ---------- First floor shared spaces ---------- */
+
+  first_hallway: {
+    displayName: 'First-Floor Hallway',
+  },
+
+  first_workspace: {
+    displayName: 'Workspace',
+    notes: [
+      'Access to rectangular balcony',
+    ],
+  },
+
+  first_rectanglebalcony: {
+    displayName: 'Rectangular Balcony',
+    notes: [
+      'Access from workspace and Bedroom 7',
+    ],
+  },
+
+  first_roundbalcony: {
+    displayName: 'Round Balcony',
+  },
+
+
+  /* ---------- First-floor bedrooms ---------- */
+
+  first_bedroom_3: {
+    displayName: 'Bedroom 3',
+    occupants: [
+      'Saheed',
+      'Naheda',
+      'Adam',
+    ],
+    notes: [
+      'Ensuite Bathroom 3',
+    ],
+  },
+
+  first_bathroom_3: {
+    displayName: 'Bathroom 3',
+    subtitle: 'Ensuite for Bedroom 3',
+    notes: [
+      'Bathtub',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  first_bedroom_4: {
+    displayName: 'Bedroom 4',
+    occupants: [
+      'Hasan',
+      'Khaleefah',
+    ],
+    notes: [
+      'Ensuite Bathroom 4',
+    ],
+  },
+
+  first_bathroom_4: {
+    displayName: 'Bathroom 4',
+    subtitle: 'Ensuite for Bedroom 4',
+    notes: [
+      'Toilet',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  first_bedroom_5: {
+    displayName: 'Bedroom 5',
+    occupants: [
+      'Yusuf',
+      'Ummi',
+      'Hidaayat',
+    ],
+    notes: [
+      'Ensuite Bathroom 5',
+    ],
+  },
+
+  first_bathroom_5: {
+    displayName: 'Bathroom 5',
+    subtitle: 'Ensuite for Bedroom 5',
+    notes: [
+      'Bathtub',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  first_bedroom_6: {
+    displayName: 'Bedroom 6',
+    occupants: [
+      'Ruji',
+      'Dawud',
+    ],
+    notes: [
+      'Ensuite Bathroom 6',
+    ],
+  },
+
+  first_bathroom_6: {
+    displayName: 'Bathroom 6',
+    subtitle: 'Ensuite for Bedroom 6',
+    notes: [
+      'Toilet',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  first_bedroom_7: {
+    displayName: 'Bedroom 7',
+    occupants: [
+      'Affa',
+      'Ruby',
+    ],
+    notes: [
+      'Ensuite Bathroom 7',
+      'Walk-in wardrobe',
+      'Balcony access',
+      'Balcony is outside the bedroom window',
+    ],
+  },
+
+  first_bathroom_7: {
+    displayName: 'Bathroom 7',
+    subtitle: 'Ensuite for Bedroom 7',
+    notes: [
+      'Bathtub',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+  first_bedroom_8: {
+    displayName: 'Bedroom 8',
+    occupants: [
+      'Shumon',
+      'Mina',
+    ],
+    notes: [
+      'Ensuite Bathroom 8',
+    ],
+  },
+
+  first_bathroom_8: {
+    displayName: 'Bathroom 8',
+    subtitle: 'Ensuite for Bedroom 8',
+    notes: [
+      'Toilet',
+      'Sink',
+      'Shower',
+    ],
+  },
+
+
+  /* ---------- Second floor ---------- */
+
+  second_hallway: {
+    displayName: 'Loft Hallway',
+  },
+
+  second_playroom: {
+    displayName: 'Playroom',
+  },
+
+  second_bedroom_1: {
+    displayName: 'Bedroom 1',
+    occupants: [
+      'Naimah',
+      'Zaynab',
+      'Sameen',
+    ],
+    notes: [
+      'Shared loft bathroom',
+    ],
+  },
+
+  second_bedroom_2: {
+    displayName: 'Bedroom 2',
+    occupants: [
+      'Zarin',
+      'Amani',
+    ],
+    notes: [
+      'Shared loft bathroom',
+    ],
+  },
+
+  second_bathroom: {
+    displayName: 'Shared Girls’ Bathroom',
+    subtitle: 'Shared by Bedrooms 1 and 2',
+    notes: [
+      'Bathtub',
+      'Sink',
+      'Shower',
+    ],
+  },
 };
 
 const viewer = document.querySelector('#viewer');
@@ -885,9 +1195,16 @@ function showRoomCard(room) {
       ? 'Loft'
       : prettyName(room.floor)} floor`;
 
-  roomName.textContent = prettyName(room.id);
+  roomName.textContent =
+    data.displayName ?? prettyName(room.id);
 
   const lines = [];
+
+  if (data.subtitle) {
+    lines.push(
+      `<p class="room-subtitle">${data.subtitle}</p>`
+    );
+  }
 
   if (data.occupants?.length) {
     lines.push(
@@ -896,15 +1213,15 @@ function showRoomCard(room) {
   }
 
   if (data.notes?.length) {
-    data.notes.forEach(note => {
-      lines.push(`<p>${note}</p>`);
-    });
+    lines.push(
+      `<ul class="room-notes">
+        ${data.notes.map(note => `<li>${note}</li>`).join('')}
+      </ul>`
+    );
   }
 
   if (!lines.length) {
-    lines.push(
-      '<p>Room information can be added once the sleeping plan is final.</p>'
-    );
+    lines.push('<p>No additional room details.</p>');
   }
 
   roomDetails.innerHTML = lines.join('');
