@@ -1056,57 +1056,7 @@ loader.load(
     modelBounds = new THREE.Box3().setFromObject(model);
 
     roomNodes = findNamedRoomNodes(model);
-    const hierarchyLines = [];
-
-model.traverse(node => {
-  if (!node.name) return;
-
-  const parents = [];
-  let current = node.parent;
-
-  while (current) {
-    if (current.name) parents.unshift(current.name);
-    current = current.parent;
-  }
-
-  hierarchyLines.push(
-    [...parents, node.name].join(' > ')
-  );
-});
-
-document.body.insertAdjacentHTML(
-  'beforeend',
-  `
-    <div id="hierarchyDebug" style="
-      position: fixed;
-      inset: 10px;
-      z-index: 99999;
-      background: white;
-      color: black;
-      padding: 12px;
-      overflow: auto;
-      font: 12px/1.4 monospace;
-      border: 2px solid black;
-    ">
-      <button id="closeHierarchyDebug" style="
-        position: sticky;
-        top: 0;
-        margin-bottom: 10px;
-        padding: 8px 12px;
-      ">
-        Close
-      </button>
-
-      <pre style="white-space: pre-wrap; margin: 0;">${hierarchyLines.join('\n')}</pre>
-    </div>
-  `
-);
-
-document
-  .querySelector('#closeHierarchyDebug')
-  .addEventListener('click', () => {
-    document.querySelector('#hierarchyDebug').remove();
-  });
+  
 
     const foundFloors = new Set();
     model.traverse(node => { const floor = floorForName(node.name); if (floor) foundFloors.add(floor); });
