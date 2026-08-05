@@ -168,22 +168,43 @@ const orbTexture = makeOrbTexture();
 
 function createMarkers() {
   markerRoot.clear();
-  const visibleRooms = roomNodes.filter(node => inheritedFloor(node) === currentFloor && node.visible);
-  const globalSize = modelBounds.getSize(new THREE.Vector3()).length();
+
+  const visibleRooms = roomNodes.filter(room =>
+    room.floor === currentFloor &&
+    room.objects.some(object => object.visible)
+  );
+
+  const globalSize = modelBounds
+    .getSize(new THREE.Vector3())
+    .length();
 
   visibleRooms.forEach(room => {
-    const box = new THREE.Box3().setFromObject(room);
+    const box = getRoomBounds(room);
     if (box.isEmpty()) return;
+
     const centre = box.getCenter(new THREE.Vector3());
     centre.y = box.max.y + globalSize * 0.018;
 
-    const material = new THREE.SpriteMaterial({ map: orbTexture, transparent: true, depthWrite: false, depthTest: false });
+    const material = new THREE.SpriteMaterial({
+      map: orbTexture,
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+    });
+
     const sprite = new THREE.Sprite(material);
     sprite.position.copy(centre);
+
     const markerSize = globalSize * 0.035;
-    sprite.scale.set(markerSize, markerSize, markerSize);
+    sprite.scale.set(
+      markerSize,
+      markerSize,
+      markerSize
+    );
+
     sprite.userData.roomNode = room;
     sprite.renderOrder = 20;
+
     markerRoot.add(sprite);
   });
 }
@@ -582,23 +603,72 @@ function setMaterialsAndShadows(root) {
   });
 }
 
+function parseRoomObjectName(value = '') {
+  const rawName = String(value).toLowerCase().trim();
+  const separatorIndex = rawName.indexOf('__');
+
+  if (separatorIndex === -1) {
+    return null;
+  }
+
+  const roomId = normalise(
+    rawName.slice(0, separatorIndex)
+  );
+
+  const objectType = normalise(
+    rawName.slice(separatorIndex + 2)
+  );
+
+  if (!roomId || !objectType) {
+    return null;
+  }
+
+  return {
+    roomId,
+    objectType,
+  };
+}
+
 function findNamedRoomNodes(root) {
-  const candidates = [];
-  root.traverse(node => {
-    if (node === root || !node.name || !isInteractiveRoom(node)) return;
-    const hasGeometry = Boolean(node.getObjectByProperty('isMesh', true));
-    if (hasGeometry) candidates.push(node);
+  const roomsById = new Map();
+
+  root.traverse(object => {
+    if (!object.isMesh || !object.name) return;
+
+    const parsed = parseRoomObjectName(object.name);
+    if (!parsed) return;
+
+    const floor = floorForName(parsed.roomId);
+    if (!floor) return;
+
+    if (!roomsById.has(parsed.roomId)) {
+      roomsById.set(parsed.roomId, {
+        name: parsed.roomId,
+        id: parsed.roomId,
+        floor,
+        objects: [],
+      });
+    }
+
+    roomsById.get(parsed.roomId).objects.push(object);
+
+    object.userData.roomId = parsed.roomId;
+    object.userData.objectType = parsed.objectType;
   });
 
-  // Avoid creating markers for named children nested inside a named room block.
-  return candidates.filter(candidate => {
-    let parent = candidate.parent;
-    while (parent && parent !== root) {
-      if (isInteractiveRoom(parent)) return false;
-      parent = parent.parent;
+  return [...roomsById.values()];
+}
+
+function getRoomBounds(room) {
+  const box = new THREE.Box3();
+
+  room.objects.forEach(object => {
+    if (object.visible) {
+      box.expandByObject(object);
     }
-    return true;
   });
+
+  return box;
 }
 
 function setFloor(floor, { fit = true } = {}) {
@@ -659,48 +729,118 @@ function moveCamera(position, target, duration = 600) {
 
 function focusRoom(room) {
   clearSelection(false);
+
   selectedRoom = room;
   markerRoot.visible = false;
+
   highlightRoom(room, true);
 
-  const box = new THREE.Box3().setFromObject(room);
+  const box = getRoomBounds(room);
+  if (box.isEmpty()) return;
+
   const size = box.getSize(new THREE.Vector3());
   const centre = box.getCenter(new THREE.Vector3());
-  const distance = Math.max(size.x, size.y, size.z) * 2.4 + modelBounds.getSize(new THREE.Vector3()).length() * 0.04;
-  const direction = camera.position.clone().sub(controls.target).normalize();
+
+  const modelSize = modelBounds
+    .getSize(new THREE.Vector3())
+    .length();
+
+  const distance =
+    Math.max(size.x, size.y, size.z) * 2.4 +
+    modelSize * 0.04;
+
+  const direction = camera.position
+    .clone()
+    .sub(controls.target)
+    .normalize();
+
   direction.y = Math.max(direction.y, 0.5);
   direction.normalize();
-  moveCamera(centre.clone().add(direction.multiplyScalar(distance)), centre, 700);
+
+  const destination = centre
+    .clone()
+    .add(direction.multiplyScalar(distance));
+
+  moveCamera(destination, centre, 700);
   showRoomCard(room);
 }
 
 function highlightRoom(room, active) {
-  room.traverse(object => {
+  room.objects.forEach(object => {
     if (!object.isMesh) return;
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
+
+    const materials = Array.isArray(object.material)
+      ? object.material
+      : [object.material];
+
     materials.forEach(material => {
       if (!material?.color) return;
-      if (!material.userData.originalColor) material.userData.originalColor = material.color.clone();
-      if ('emissive' in material && !material.userData.originalEmissive) material.userData.originalEmissive = material.emissive.clone();
-      material.color.copy(active ? new THREE.Color('#a5b49c') : material.userData.originalColor);
+
+      if (!material.userData.originalColor) {
+        material.userData.originalColor =
+          material.color.clone();
+      }
+
+      if (
+        'emissive' in material &&
+        !material.userData.originalEmissive
+      ) {
+        material.userData.originalEmissive =
+          material.emissive.clone();
+      }
+
+      material.color.copy(
+        active
+          ? new THREE.Color('#a5b49c')
+          : material.userData.originalColor
+      );
+
       if ('emissive' in material) {
-        material.emissive.copy(active ? new THREE.Color('#34452f') : material.userData.originalEmissive);
-        material.emissiveIntensity = active ? 0.22 : 0;
+        material.emissive.copy(
+          active
+            ? new THREE.Color('#34452f')
+            : material.userData.originalEmissive
+        );
+
+        material.emissiveIntensity = active
+          ? 0.22
+          : 0;
       }
     });
   });
 }
 
 function showRoomCard(room) {
-  const key = normalise(room.name);
+  const key = room.id;
   const data = ROOM_DATA[key] ?? {};
-  roomFloor.textContent = `${currentFloor === 'second' ? 'Loft' : prettyName(currentFloor)} floor`;
-  roomName.textContent = prettyName(room.name);
+
+  roomFloor.textContent =
+    `${room.floor === 'second'
+      ? 'Loft'
+      : prettyName(room.floor)} floor`;
+
+  roomName.textContent = prettyName(room.id);
 
   const lines = [];
-  if (data.occupants?.length) lines.push(`<p><strong>Staying here:</strong> ${data.occupants.join(', ')}</p>`);
-  if (data.notes?.length) data.notes.forEach(note => lines.push(`<p>${note}</p>`));
-  if (!lines.length) lines.push('<p>Room information can be added once the sleeping plan is final.</p>');
+
+  if (data.occupants?.length) {
+    lines.push(
+      `<p><strong>Staying here:</strong> ${data.occupants.join(', ')}</p>`
+    );
+  }
+
+  if (data.notes?.length) {
+    data.notes.forEach(note => {
+      lines.push(`<p>${note}</p>`);
+    });
+  }
+
+  if (!lines.length) {
+    lines.push(
+      '<p>Room information can be added once the sleeping plan is final.</p>'
+    );
+  }
+
   roomDetails.innerHTML = lines.join('');
   roomCard.hidden = false;
 }
