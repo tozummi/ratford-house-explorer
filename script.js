@@ -232,8 +232,8 @@ const ROOM_DATA = {
   first_bedroom_7: {
     displayName: 'Bedroom 7',
     occupants: [
-      'Affa',
-      'Ruby',
+      'Shumon',
+      'Mina',
     ],
     notes: [
       'Ensuite Bathroom 7',
@@ -256,8 +256,8 @@ const ROOM_DATA = {
   first_bedroom_8: {
     displayName: 'Bedroom 8',
     occupants: [
-      'Shumon',
-      'Mina',
+      'Affa',
+      'Ruby',
     ],
     notes: [
       'Ensuite Bathroom 8',
