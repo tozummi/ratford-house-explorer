@@ -1086,11 +1086,21 @@ function focusRoom(room) {
   direction.y = Math.max(direction.y, 0.5);
   direction.normalize();
 
-  const destination = centre
+  /*
+   * Move the camera target slightly beyond the room centre.
+   * This makes the room appear higher in the viewer, leaving
+   * more clear space for the card at the bottom.
+   */
+  const upwardAmount = Math.max(size.y, modelSize * 0.035);
+
+  const adjustedTarget = centre.clone();
+  adjustedTarget.y -= upwardAmount;
+
+  const destination = adjustedTarget
     .clone()
     .add(direction.multiplyScalar(distance));
 
-  moveCamera(destination, centre, 700);
+  moveCamera(destination, adjustedTarget, 700);
   showRoomCard(room);
 }
 
