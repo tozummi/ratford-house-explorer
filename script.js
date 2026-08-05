@@ -599,7 +599,26 @@ function setMaterialsAndShadows(root) {
 
     object.castShadow = true;
     object.receiveShadow = true;
-    object.material = getSharedMaterial(object);
+
+    /*
+     * Clone the category material once for each mesh.
+     * Objects keep matching colours, but can now be dimmed or
+     * highlighted independently.
+     */
+    const baseMaterial = getSharedMaterial(object);
+    object.material = baseMaterial.clone();
+
+    object.material.userData.baseColor =
+      object.material.color.clone();
+
+    object.material.userData.baseEmissive =
+      object.material.emissive.clone();
+
+    object.material.userData.baseEmissiveIntensity =
+      object.material.emissiveIntensity ?? 0;
+
+    object.material.userData.baseOpacity =
+      object.material.opacity ?? 1;
   });
 }
 
@@ -766,46 +785,93 @@ function focusRoom(room) {
 }
 
 function highlightRoom(room, active) {
-  room.objects.forEach(object => {
-    if (!object.isMesh) return;
+  if (!model) return;
+
+  const selectedObjects = new Set(room?.objects ?? []);
+
+  model.traverse(object => {
+    if (!object.isMesh || !object.material) return;
 
     const materials = Array.isArray(object.material)
       ? object.material
       : [object.material];
 
+    const belongsToSelectedRoom = selectedObjects.has(object);
+
     materials.forEach(material => {
       if (!material?.color) return;
 
-      if (!material.userData.originalColor) {
-        material.userData.originalColor =
-          material.color.clone();
+      const baseColor =
+        material.userData.baseColor ??
+        material.color.clone();
+
+      const baseEmissive =
+        material.userData.baseEmissive ??
+        material.emissive?.clone?.() ??
+        new THREE.Color(0x000000);
+
+      /*
+       * No room selected:
+       * restore everything to its normal appearance.
+       */
+      if (!active || !room) {
+        material.color.copy(baseColor);
+
+        if ('emissive' in material) {
+          material.emissive.copy(baseEmissive);
+          material.emissiveIntensity =
+            material.userData.baseEmissiveIntensity ?? 0;
+        }
+
+        material.opacity =
+          material.userData.baseOpacity ?? 1;
+
+        material.transparent = false;
+        material.depthWrite = true;
+        material.needsUpdate = true;
+        return;
       }
 
-      if (
-        'emissive' in material &&
-        !material.userData.originalEmissive
-      ) {
-        material.userData.originalEmissive =
-          material.emissive.clone();
+      /*
+       * Selected room:
+       * retain its true material colour and add a sage glow.
+       */
+      if (belongsToSelectedRoom) {
+        material.color.copy(baseColor);
+
+        if ('emissive' in material) {
+          material.emissive.set('#6f9168');
+          material.emissiveIntensity = 0.48;
+        }
+
+        material.opacity = 1;
+        material.transparent = false;
+        material.depthWrite = true;
       }
 
-      material.color.copy(
-        active
-          ? new THREE.Color('#a5b49c')
-          : material.userData.originalColor
-      );
+      /*
+       * Everything else:
+       * desaturate and darken it slightly.
+       */
+      else {
+        const grey = new THREE.Color('#8f928e');
 
-      if ('emissive' in material) {
-        material.emissive.copy(
-          active
-            ? new THREE.Color('#34452f')
-            : material.userData.originalEmissive
-        );
+        material.color
+          .copy(baseColor)
+          .lerp(grey, 0.78)
+          .multiplyScalar(0.72);
 
-        material.emissiveIntensity = active
-          ? 0.22
-          : 0;
+        if ('emissive' in material) {
+          material.emissive.set('#000000');
+          material.emissiveIntensity = 0;
+        }
+
+        material.opacity = 0.52;
+        material.transparent = true;
+        material.depthWrite = false;
       }
+
+      material.needsUpdate = true;
     });
   });
 }
@@ -846,11 +912,15 @@ function showRoomCard(room) {
 }
 
 function clearSelection(refit = true) {
-  if (selectedRoom) highlightRoom(selectedRoom, false);
+  highlightRoom(null, false);
+
   selectedRoom = null;
   roomCard.hidden = true;
   markerRoot.visible = true;
-  if (refit && model) fitVisibleModel(true);
+
+  if (refit && model) {
+    fitVisibleModel(true);
+  }
 }
 
 function resetView() {
